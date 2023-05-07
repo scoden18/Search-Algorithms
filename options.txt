@@ -1,8 +1,12 @@
 seed = 
-randomize_tile_size_and_num_obstructions = False
+randomize_tile_size_and_num_obstructions = True
 randomize_x_y_size = False
 show_distances = False
 print_completion_time = True
 tile_width = 15
-obstruction_chance = 0.0
-make_start_and_target_on_opposite_sides = False
+obstruction_chance = 0.2
+make_start_and_target_on_opposite_sides = True
+min_tile_size = 5
+max_tile_size = 30
+min_obstruction_chance = 0.0
+max_obstruction_chance = 0.4

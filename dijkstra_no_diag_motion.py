@@ -26,11 +26,18 @@ seed = options[0].split(" = ")[1]
 if seed != "\n":
     random.seed(seed)
 
+min_tile_size = int(options[8].split(" = ")[1])
+max_tile_size = int(options[9].split(" = ")[1])
+
+#Obstruction chance is between 0 and 1, multiply by 100 for the % chance
+min_obstruction_chance = float(options[10].split(" = ")[1])
+max_obstruction_chance = float(options[11].split(" = ")[1])
+
 #If you don't randomize, it uses the values tile_width and obstruction_chance in options.txt
 randomize_tile_size_and_num_obstructions = options[1].split(" = ")[1]
 if randomize_tile_size_and_num_obstructions == "True\n":
-    tile_width = random.randint(20,50)
-    obstruction_chance = random.uniform(0,0.4)
+    tile_width = random.randint(min_tile_size,max_tile_size)
+    obstruction_chance = random.uniform(min_obstruction_chance,max_obstruction_chance)
 else:
     tile_width = int(options[5].split(" = ")[1])
     obstruction_chance = float(options[6].split(" = ")[1])
@@ -58,7 +65,7 @@ else:
 
 #If you want the start and target as far from each other as possible.
 make_on_opposite_sides = options[7].split(" = ")[1]
-if make_on_opposite_sides == "True":
+if make_on_opposite_sides == "True\n":
     make_on_opposite_sides = True
 else:
     make_on_opposite_sides = False
