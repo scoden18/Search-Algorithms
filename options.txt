@@ -1,5 +1,5 @@
 seed = 
-randomize_tile_size_and_num_obstructions = True
+randomize_tile_size_and_num_obstructions = False
 randomize_x_y_size = False
 show_distances = False
 print_completion_time = True

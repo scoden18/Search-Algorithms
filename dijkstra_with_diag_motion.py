@@ -25,7 +25,7 @@ seed = options[0].split(" = ")[1]
 if seed != "\n":
     random.seed(seed)
 
-
+#If you don't randomize, it uses the values tile_width and obstruction_chance in options.txt
 randomize_tile_size_and_num_obstructions = options[1].split(" = ")[1]
 if randomize_tile_size_and_num_obstructions == "True\n":
     tile_width = random.randint(20,50)
@@ -34,24 +34,28 @@ else:
     tile_width = int(options[5].split(" = ")[1])
     obstruction_chance = float(options[6].split(" = ")[1])
 
-randomize_x_y_size_1 = options[2].split(" = ")[1]
-if randomize_x_y_size_1 == "True\n":
+#If you randomize, it takes up 33-90% of you screen, otherwise it's just 90%
+randomize_x_y_size = options[2].split(" = ")[1]
+if randomize_x_y_size == "True\n":
     randomize_x_y_size = True
 else:
     randomize_x_y_size = False
 
-show_distances_1 = options[3].split(" = ")[1]
-if show_distances_1 == "True\n":
+#You can print the distance from the starting tile on every tile searched.
+show_distances = options[3].split(" = ")[1]
+if show_distances == "True\n":
     show_distances = True
 else:
     show_distances = False
 
-print_completion_time_1 = options[4].split(" = ")[1]
-if print_completion_time_1 == "True\n":
+#Prints completion time (Including white screen) to terminal
+print_completion_time = options[4].split(" = ")[1]
+if print_completion_time == "True\n":
     print_completion_time = True
 else:
     print_completion_time = False
 
+#If you want the start and target as far from each other as possible.
 make_on_opposite_sides = options[7].split(" = ")[1]
 if make_on_opposite_sides == "True":
     make_on_opposite_sides = True
