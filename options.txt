@@ -1,0 +1,8 @@
+seed = 
+randomize_tile_size_and_num_obstructions = True
+randomize_x_y_size = False
+show_distances = False
+print_completion_time = True
+tile_width = 15
+obstruction_chance = 0.0
+make_start_and_target_on_opposite_sides = False
