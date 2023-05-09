@@ -6,13 +6,15 @@ import random
 import math
 import sys
 import time
-
+import csv
 
 
 #Note: You can left click and drag to add obstructions in white space.
 
 #OPTIONS
 #Configure in options.txt, just change True/False or the number. Don't move stuff.
+#If using custom maze, set use_custom_maze = True and it will overwrite all options except printing time and distance.
+#Only works if you have the "maze.csv" file in the same folder as this script
 #Leave "seed = " for random, do "seed = something" to seed it.
 #Recommendations: For 1920x1080 screen
 #Tile width >= 5, below 5 it crashes. Max is like 500 but that's 3 tiles. 150 max probably.
@@ -21,34 +23,61 @@ import time
 with open("options.txt","r") as file:
     options = file.readlines()
 
-#Leave seed blank in options to not seed it.
-seed = options[0].split(" = ")[1]
-if seed != "\n":
-    random.seed(seed)
-
-min_tile_size = int(options[8].split(" = ")[1])
-max_tile_size = int(options[9].split(" = ")[1])
-
-#Obstruction chance is between 0 and 1, multiply by 100 for the % chance
-min_obstruction_chance = float(options[10].split(" = ")[1])
-max_obstruction_chance = float(options[11].split(" = ")[1])
-
-#If you don't randomize, it uses the values tile_width and obstruction_chance in options.txt
-randomize_tile_size_and_num_obstructions = options[1].split(" = ")[1]
-if randomize_tile_size_and_num_obstructions == "True\n":
-    tile_width = random.randint(min_tile_size,max_tile_size)
-    obstruction_chance = random.uniform(min_obstruction_chance,max_obstruction_chance)
+use_custom_maze = options[12].split(" = ")[1]
+if use_custom_maze == "True\n":
+    use_custom_maze = True
 else:
-    tile_width = int(options[5].split(" = ")[1])
-    obstruction_chance = float(options[6].split(" = ")[1])
+    use_custom_maze = False
 
-#If you randomize, it takes up 33-90% of you screen, otherwise it's just 90%
-randomize_x_y_size = options[2].split(" = ")[1]
-if randomize_x_y_size == "True\n":
-    randomize_x_y_size = True
+if not use_custom_maze:
+    #Leave seed blank in options to not seed it.
+    seed = options[0].split(" = ")[1]
+    if seed != "\n":
+        random.seed(seed)
+
+    min_tile_size = int(options[8].split(" = ")[1])
+    max_tile_size = int(options[9].split(" = ")[1])
+
+    #Obstruction chance is between 0 and 1, multiply by 100 for the % chance
+    min_obstruction_chance = float(options[10].split(" = ")[1])
+    max_obstruction_chance = float(options[11].split(" = ")[1])
+
+    #If you don't randomize, it uses the values tile_width and obstruction_chance in options.txt
+    randomize_tile_size_and_num_obstructions = options[1].split(" = ")[1]
+    if randomize_tile_size_and_num_obstructions == "True\n":
+        tile_width = random.randint(min_tile_size,max_tile_size)
+        obstruction_chance = random.uniform(min_obstruction_chance,max_obstruction_chance)
+    else:
+        tile_width = int(options[5].split(" = ")[1])
+        obstruction_chance = float(options[6].split(" = ")[1])
+
+    #If you randomize, it takes up 33-90% of you screen, otherwise it's just 90%
+    randomize_x_y_size = options[2].split(" = ")[1]
+    if randomize_x_y_size == "True\n":
+        randomize_x_y_size = True
+    else:
+        randomize_x_y_size = False
+
+
+    #If you want the start and target as far from each other as possible.
+    make_on_opposite_sides = options[7].split(" = ")[1]
+    if make_on_opposite_sides == "True\n":
+        make_on_opposite_sides = True
+    else:
+        make_on_opposite_sides = False
 else:
     randomize_x_y_size = False
+    make_on_opposit_sides = False
+    with open("maze.csv", "r") as file:
+        reader = csv.reader(file)
+        topvars = next(reader)
+        tile_width = int(topvars[0])
+        x_width = int(topvars[1])
+        y_width = int(topvars[2])
+        del reader
 
+
+#These two are independent of using a custom maze
 #You can print the distance from the starting tile on every tile searched.
 show_distances = options[3].split(" = ")[1]
 if show_distances == "True\n":
@@ -62,13 +91,6 @@ if print_completion_time == "True\n":
     print_completion_time = True
 else:
     print_completion_time = False
-
-#If you want the start and target as far from each other as possible.
-make_on_opposite_sides = options[7].split(" = ")[1]
-if make_on_opposite_sides == "True\n":
-    make_on_opposite_sides = True
-else:
-    make_on_opposite_sides = False
 
 
 
@@ -84,6 +106,7 @@ def searchnear(tile):
     global canvas
     global target_found
 
+    canvas.update()
     target_found = False
     
 
@@ -153,6 +176,7 @@ def searchnear(tile):
         
         #Tile has been searched
         tile[2] = True
+        
 
         #Nearby valid tiles are now considered unsearched
         for unsearched_tile in valids:
@@ -268,7 +292,7 @@ def searchforpath(tile):
                 tile = guess
         except:
             if print_completion_time:
-                    print(f"Completed in {time.time() - start_time} seconds")
+                print(f"Completed in {time.time() - start_time} seconds")
             root.quit()
             return path
 
@@ -337,45 +361,71 @@ sys.setrecursionlimit(10**7)
 root.geometry(f"{root_width}x{root_height}+0+0")
 canvas = Canvas(root, bg = background_color, height = root_height, width = root_width)
 
-#Tiles is a 2D list.
-#For each list, 0 is the tile, 1 is if it's an obstruction, 2 is if it's been searched, 3 is the distance from the start.
-tiles = []
-for i in range(x_width):
-    for j in range(y_width):
-        new_rect = canvas.create_rectangle(tile_width*i,tile_width*j,tile_width*i+tile_width,tile_width*j+tile_width,fill = background_color, outline = "#666666", width = 2)
-        #Distance from start is originally unknown so it's assigned the max possible value.
-        tiles.append([new_rect, False, False, sys.maxsize])
+if not use_custom_maze:
+    #Tiles is a 2D list.
+    #0 is the tile, 1 is if it's an obstruction, 2 is if it's been searched, 3 is the distance associated
+    tiles = []
+    for i in range(x_width):
+        for j in range(y_width):
+            new_rect = canvas.create_rectangle(tile_width*i,tile_width*j,tile_width*i+tile_width-1,tile_width*j+tile_width-1,fill = background_color, outline = "#666666", width = 1)
+            tiles.append([new_rect, False, False, sys.maxsize])
 
 
-#Randomly makes obstructions
-for i in tiles:
-    obstruct = random.uniform(0,1)
-    if obstruct <= obstruction_chance:
-        canvas.itemconfigure(i[0], fill = "#222222")
-        i[1] = True
+    for i in tiles:
+        obstruct = random.uniform(0,1)
+        if obstruct <= obstruction_chance:
+            canvas.itemconfigure(i[0], fill = "#222222")
+            i[1] = True
 
 
-#Randomly chooses target tile
-target_tile = random.choice(tiles)
-if target_tile[1]:
-    while target_tile[1]:
-        target_tile = random.choice(tiles)
-if make_on_opposite_sides:
-    target_tile = tiles[0]
-    target_tile[1] = False
-canvas.itemconfigure(target_tile[0], fill = "red")
+    target_tile = random.choice(tiles)
+    if target_tile[1]:
+        while target_tile[1]:
+            target_tile = random.choice(tiles)
+    if make_on_opposite_sides:
+        target_tile = tiles[0]
+        target_tile[1] = False
+    canvas.itemconfigure(target_tile[0], fill = "red")
 
 
-#Randomly chooses start tile
-start_tile = random.choice(tiles)
-if (canvas.coords(start_tile[0]) == canvas.coords(target_tile[0])) or start_tile[1]:
-    while (canvas.coords(start_tile[0]) == canvas.coords(target_tile[0])) or start_tile[1]:
-        start_tile = random.choice(tiles)
-if make_on_opposite_sides:
+    start_tile = random.choice(tiles)
+    if (canvas.coords(start_tile[0]) == canvas.coords(target_tile[0])) or start_tile[1]:
+        while (canvas.coords(start_tile[0]) == canvas.coords(target_tile[0])) or start_tile[1]:
+            start_tile = random.choice(tiles)
+    if make_on_opposite_sides:
+        start_tile = tiles[-1]
+        start_tile[1] = False
+    canvas.itemconfigure(start_tile[0], fill = "#11DD11")
+    start_tile[3] = 0
+else:
+    #Tiles is a 2D list.
+    #0 is the tile, 1 is if it's an obstruction, 2 is if it's been searched, 3 is the distance associated
+    tiles = []
+    for i in range(x_width):
+        for j in range(y_width):
+            new_rect = canvas.create_rectangle(tile_width*i,tile_width*j,tile_width*i+tile_width-1,tile_width*j+tile_width-1,fill = background_color, outline = "#666666", width = 1)
+            tiles.append([new_rect, False, False, sys.maxsize])
     start_tile = tiles[-1]
-    start_tile[1] = False
-canvas.itemconfigure(start_tile[0], fill = "#11DD11")
-start_tile[3] = 0
+    start_tile[3] = 0
+    target_tile = tiles[0]
+
+    with open("maze.csv", "r") as file:
+        reader = csv.reader(file)
+        #skip first row since it's just numbers
+        next(reader)
+        for row in reader:
+            if row[1] == "1":
+                tiles[int(row[0]) - 1][1] = True
+                canvas.itemconfigure(tiles[int(row[0]) - 1][0], fill = "#222222")
+            elif row[2] == "1":
+                start_tile = tiles[int(row[0]) - 1]
+                canvas.itemconfigure(start_tile[0], fill = "#11DD11")
+                start_tile[3] = 0
+            elif row[3] == "1":
+                target_tile = tiles[int(row[0]) - 1]
+                canvas.itemconfigure(target_tile[0], fill = "red")
+
+
 
 #Originally, only the start tile is considered unsearched.
 unsearched = [start_tile]
